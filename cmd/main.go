@@ -26,5 +26,15 @@ func main() {
 	if err != nil {
 		fmt.Printf("Error: %s", err)
 	}
-	fmt.Printf("selected: %v\n", idx)
+
+	branch := strings.TrimSpace(branches[idx])
+	fmt.Println(branch)
+	cmd = exec.Command("git", "switch", branch)
+	out, err = cmd.Output()
+	_ = out
+	if err != nil {
+		fmt.Printf("Error: %s\n", err)
+	} else {
+		fmt.Printf("switched to %s branch\n", branch)
+	}
 }
