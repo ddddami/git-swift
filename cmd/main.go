@@ -14,10 +14,13 @@ type Branch struct {
 }
 
 func main() {
-	cmd := exec.Command("git", "branch")
-	out, _ := cmd.Output()
-	fmt.Println(string(out))
+	listBranchCmd := exec.Command("git", "branch")
+	out, err := listBranchCmd.CombinedOutput()
 	branches := strings.Split(strings.TrimSpace(string(out)), "\n")
+
+	if err != nil {
+		fmt.Printf("git branch list failed: %s - %s", err, string(out))
+	}
 
 	idx, err := fuzzyfinder.Find(
 		branches, func(i int) string {
@@ -25,17 +28,15 @@ func main() {
 		},
 	)
 	if err != nil {
-		fmt.Printf("Error: %s", err)
+		fmt.Printf("Error: %s", err) // fix -  out is still holding last reference even if cmd failed
 	}
 
-	branch := strings.TrimSpace(branches[idx])
-	fmt.Println(branch)
-	cmd = exec.Command("git", "switch", branch)
-	out, err = cmd.Output()
-	_ = out
+	branch := strings.TrimSpace(strings.TrimPrefix(branches[idx], "*"))
+	checkoutCmd := exec.Command("git", "switch", branch)
+	out, err = checkoutCmd.CombinedOutput()
 	if err != nil {
-		fmt.Printf("Error: %s\n", err)
-	} else {
-		fmt.Printf("switched to %s branch\n", branch)
+		fmt.Printf("git checkout failed: %s - %s", err, string(out))
+		return
 	}
+	fmt.Printf("Switched to branch '%s'\n", branch)
 }
