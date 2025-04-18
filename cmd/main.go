@@ -16,7 +16,8 @@ type Branch struct {
 func main() {
 	cmd := exec.Command("git", "branch")
 	out, _ := cmd.Output()
-	branches := strings.Split(string(out), "\n")
+	fmt.Println(string(out))
+	branches := strings.Split(strings.TrimSpace(string(out)), "\n")
 
 	idx, err := fuzzyfinder.Find(
 		branches, func(i int) string {
