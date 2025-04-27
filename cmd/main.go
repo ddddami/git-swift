@@ -14,16 +14,16 @@ import (
 var (
 	primaryColor = lipgloss.Color("#87CEEB")
 	mutedColor   = lipgloss.Color("#6C6C6C")
-	whiteColor   = lipgloss.Color("#D0D0D0")
+	lightColor   = lipgloss.Color("#D0D0D0")
 
 	promptStyle = lipgloss.NewStyle().Foreground(primaryColor)
 	searchStyle = lipgloss.NewStyle().Foreground(primaryColor)
 
 	numberStyle = lipgloss.NewStyle().Foreground(mutedColor)
-	branchStyle = lipgloss.NewStyle().Foreground(whiteColor)
+	branchStyle = lipgloss.NewStyle().Foreground(lightColor)
 
-	currentBranchStyle = lipgloss.NewStyle().Foreground(whiteColor)
-	selectedStyle      = lipgloss.NewStyle().Foreground(whiteColor)
+	currentBranchStyle = lipgloss.NewStyle().Foreground(lightColor)
+	selectedStyle      = lipgloss.NewStyle().Foreground(primaryColor)
 
 	helpTextStyle = lipgloss.NewStyle().Foreground(mutedColor)
 )
@@ -45,10 +45,22 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+c", "esc":
+		switch msg.Type {
+		case tea.KeyCtrlC, tea.KeyEsc:
 			return m, tea.Quit
+
+		case tea.KeyUp, tea.KeyCtrlP:
+			if m.cursor > 0 {
+				m.cursor--
+			}
+
+		case tea.KeyDown, tea.KeyCtrlN:
+			if m.cursor < len(m.branches)-1 {
+				m.cursor++
+			}
 		}
+
+		m.textInput, cmd = m.textInput.Update(msg)
 	}
 
 	return m, cmd
@@ -81,8 +93,12 @@ func (m model) View() string {
 			branchText = branchStyle.Render(branch)
 		}
 
-		num = numberStyle.Render(num)
-
+		if i == m.cursor {
+			branchText = selectedStyle.Render(branch)
+			num = selectedStyle.Render(num)
+		} else {
+			num = numberStyle.Render(num)
+		}
 		s.WriteString(fmt.Sprintf("%s%s", num, branchText))
 		s.WriteString("\n")
 	}
