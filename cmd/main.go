@@ -75,6 +75,17 @@ func (m *model) filter() {
 	m.filteredBranches = filtered
 }
 
+func directSwitch(branchName string) {
+	cmd := exec.Command("git", "switch", branchName)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error switching branch: %s\n", string(output))
+		os.Exit(1)
+	}
+	fmt.Printf("Switched to branch '%s'\n", branchName)
+	os.Exit(0)
+}
+
 func (m model) Init() tea.Cmd {
 	return textinput.Blink
 }
@@ -220,6 +231,10 @@ func initialModel() model {
 }
 
 func main() {
+	if len(os.Args) > 1 {
+		directSwitch(os.Args[1])
+	}
+
 	m := initialModel()
 
 	p := tea.NewProgram(m)
