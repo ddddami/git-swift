@@ -37,6 +37,27 @@ type model struct {
 	err              error
 }
 
+func fuzzyMatch(branch, query string) bool {
+	if query == "" {
+		return true
+	}
+
+	branch = strings.ToLower(branch)
+	query = strings.ToLower(query)
+
+	branchIdx := 0
+	queryIdx := 0
+
+	for queryIdx < len(query) && branchIdx < len(branch) {
+		if query[queryIdx] == branch[branchIdx] {
+			queryIdx++
+		}
+		branchIdx++
+	}
+
+	return queryIdx == len(query)
+}
+
 func (m *model) filter() {
 	query := m.textInput.Value()
 
@@ -47,7 +68,7 @@ func (m *model) filter() {
 
 	filtered := []string{}
 	for _, branch := range m.branches {
-		if strings.Contains(branch, query) {
+		if fuzzyMatch(branch, query) {
 			filtered = append(filtered, branch)
 		}
 	}
