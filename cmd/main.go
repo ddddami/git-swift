@@ -29,11 +29,29 @@ var (
 )
 
 type model struct {
-	branches      []string
-	currentBranch string
-	textInput     textinput.Model
-	cursor        int
-	err           error
+	branches         []string
+	filteredBranches []string
+	currentBranch    string
+	textInput        textinput.Model
+	cursor           int
+	err              error
+}
+
+func (m *model) filter() {
+	query := m.textInput.Value()
+
+	if query == "" {
+		m.filteredBranches = m.branches
+		return
+	}
+
+	filtered := []string{}
+	for _, branch := range m.branches {
+		if strings.Contains(branch, query) {
+			filtered = append(filtered, branch)
+		}
+	}
+	m.filteredBranches = filtered
 }
 
 func (m model) Init() tea.Cmd {
@@ -55,12 +73,18 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case tea.KeyDown, tea.KeyCtrlN:
-			if m.cursor < len(m.branches)-1 {
+			if m.cursor < len(m.filteredBranches)-1 {
 				m.cursor++
 			}
 		}
 
 		m.textInput, cmd = m.textInput.Update(msg)
+		m.filter()
+
+		// Adjust cursor if out of bounds after filtering
+		if m.cursor >= len(m.filteredBranches) && len(m.filteredBranches) > 0 {
+			m.cursor = len(m.filteredBranches) - 1
+		}
 	}
 
 	return m, cmd
@@ -78,12 +102,12 @@ func (m model) View() string {
 	s.WriteString(searchStyle.Render(m.textInput.View()))
 	s.WriteString("\n")
 
-	if len(m.branches) > 0 {
+	if len(m.filteredBranches) > 0 {
 		s.WriteString(helpTextStyle.Render("↑↓ quick select"))
 		s.WriteString("\n\n")
 	}
 
-	for i, branch := range m.branches {
+	for i, branch := range m.filteredBranches {
 		var branchText string
 		num := fmt.Sprintf("%d ", i)
 
@@ -145,12 +169,12 @@ func initialModel() model {
 	}
 
 	m := model{
-		branches:      branches,
-		currentBranch: currentBranch,
-		textInput:     ti,
+		branches:         branches,
+		filteredBranches: branches,
+		currentBranch:    currentBranch,
+		textInput:        ti,
 	}
 	return m
-
 }
 
 func main() {
