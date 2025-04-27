@@ -97,6 +97,27 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.cursor < len(m.filteredBranches)-1 {
 				m.cursor++
 			}
+
+		case tea.KeyEnter:
+
+			if len(m.filteredBranches) == 0 {
+				return m, nil
+			}
+
+			selectedBranch := m.filteredBranches[m.cursor]
+			if selectedBranch == m.currentBranch {
+				return m, tea.Quit
+			}
+
+			cmd := exec.Command("git", "switch", selectedBranch)
+			err := cmd.Run()
+			if err != nil {
+				m.err = err
+				return m, nil
+			}
+
+			fmt.Printf("  ▶ Switched to branch '%s'\n", selectedBranch)
+			return m, tea.Quit
 		}
 
 		m.textInput, cmd = m.textInput.Update(msg)
