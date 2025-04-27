@@ -7,130 +7,89 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/bubbles/textinput"
-	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
 
 var (
-	titleStyle = lipgloss.NewStyle().
-			Bold(true).
-			Foreground(lipgloss.Color("#FFFDF5")).
-			Background(lipgloss.Color("#7851A9")).
-			Padding(0, 1)
+	primaryColor = lipgloss.Color("#87CEEB")
+	mutedColor   = lipgloss.Color("#6C6C6C")
+	whiteColor   = lipgloss.Color("#D0D0D0")
 
-	inputStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FFFDF5")).
-			Background(lipgloss.Color("#333333")).
-			Padding(0, 1)
+	promptStyle = lipgloss.NewStyle().Foreground(primaryColor)
+	searchStyle = lipgloss.NewStyle().Foreground(primaryColor)
 
-	currentBranchStyle = lipgloss.NewStyle().
-				Foreground(lipgloss.Color("#00FF00")).
-				Bold(true)
+	numberStyle = lipgloss.NewStyle().Foreground(mutedColor)
+	branchStyle = lipgloss.NewStyle().Foreground(whiteColor)
 
-	matchStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FFFDF5"))
+	currentBranchStyle = lipgloss.NewStyle().Foreground(whiteColor)
+	selectedStyle      = lipgloss.NewStyle().Foreground(whiteColor)
 
-	selectedStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FFFDF5")).
-			Background(lipgloss.Color("#7851A9")).
-			Bold(true)
-
-	statusStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FFFDF5")).
-			Background(lipgloss.Color("#FF6B6B"))
+	helpTextStyle = lipgloss.NewStyle().Foreground(mutedColor)
 )
 
-type Branch struct {
-	Name      string
-	IsCurrent bool
-}
-
 type model struct {
-	branches      []Branch
+	branches      []string
 	currentBranch string
 	textInput     textinput.Model
-	selected      int
-	initialized   bool
-	ready         bool
-	windowSize    tea.WindowSizeMsg
-	viewport      viewport.Model
+	cursor        int
+	err           error
 }
 
 func (m model) Init() tea.Cmd {
-	return nil
+	return textinput.Blink
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	// cmd  tea.Cmd
-	var cmds []tea.Cmd
+	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
-	case tea.WindowSizeMsg:
-		m.windowSize = msg
-
-		if !m.initialized {
-			m.initialized = true
-
-			m.viewport = viewport.New(msg.Width, msg.Height-3)
-			m.viewport.SetContent("")
-			m.textInput = textinput.New()
-			m.textInput.Placeholder = "Search"
-			// m.textInput.Focus()
-			m.textInput.Width = msg.Width
-			// m.textInput.Prompt = "branch › "
-		} else {
-			m.viewport.Width = msg.Width
-			m.viewport.Height = msg.Height - 3
-		}
-		m.ready = true
-
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "ctrl+c", "q":
+		case "ctrl+c", "esc":
 			return m, tea.Quit
 		}
 	}
 
-	viewportContent := strings.Builder{}
-	for i, branch := range m.branches {
-		branchName := branch.Name
-
-		if branch.IsCurrent {
-			branchName = "* " + currentBranchStyle.Render(branchName)
-		} else {
-			branchName = "  " + branchName
-		}
-
-		if i == m.selected {
-			viewportContent.WriteString(selectedStyle.Render("› "+branchName) + "\n")
-		} else {
-			viewportContent.WriteString(matchStyle.Render("  "+branchName) + "\n")
-		}
-
-		m.viewport.SetContent(viewportContent.String())
-
-		_, viewportCmd := m.viewport.Update(msg)
-		cmds = append(cmds, viewportCmd)
-	}
-
-	return m, tea.Batch(cmds...)
+	return m, cmd
 }
 
 func (m model) View() string {
-	if !m.ready {
-		return "Loading branches..."
+	if m.err != nil {
+		return fmt.Sprintf("Error: %v\n", m.err)
 	}
+
 	s := strings.Builder{}
-	s.WriteString(inputStyle.Render(m.textInput.View()))
+
+	s.WriteString(promptStyle.Render("$ swift git"))
 	s.WriteString("\n")
-	s.WriteString(m.viewport.View())
+	s.WriteString(searchStyle.Render(m.textInput.View()))
 	s.WriteString("\n")
-	s.WriteString(" [↑/↓] Navigate [Enter] Switch [Esc] Quit")
+
+	if len(m.branches) > 0 {
+		s.WriteString(helpTextStyle.Render("↑↓ quick select"))
+		s.WriteString("\n\n")
+	}
+
+	for i, branch := range m.branches {
+		var branchText string
+		num := fmt.Sprintf("%d ", i)
+
+		if branch == m.currentBranch {
+			branchText = currentBranchStyle.Render(branch)
+		} else {
+			branchText = branchStyle.Render(branch)
+		}
+
+		num = numberStyle.Render(num)
+
+		s.WriteString(fmt.Sprintf("%s%s", num, branchText))
+		s.WriteString("\n")
+	}
 	return s.String()
 }
 
-func getBranches() ([]Branch, string, error) {
+func getBranches() ([]string, string, error) {
 	cmd := exec.Command("git", "branch")
 	output, err := cmd.Output()
 	if err != nil {
@@ -138,7 +97,7 @@ func getBranches() ([]Branch, string, error) {
 	}
 
 	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
-	branches := make([]Branch, 0, len(lines))
+	branches := make([]string, 0, len(lines))
 	currentBranch := ""
 
 	for _, line := range lines {
@@ -150,16 +109,19 @@ func getBranches() ([]Branch, string, error) {
 			currentBranch = name
 		}
 
-		branches = append(branches, Branch{
-			Name:      name,
-			IsCurrent: isCurrent,
-		})
+		branches = append(branches, name)
 	}
 
 	return branches, currentBranch, nil
 }
 
-func main() {
+func initialModel() model {
+	ti := textinput.New()
+	ti.Placeholder = "Search"
+	ti.Focus()
+	ti.CharLimit = 156
+	ti.Width = 20
+
 	branches, currentBranch, err := getBranches()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
@@ -169,9 +131,16 @@ func main() {
 	m := model{
 		branches:      branches,
 		currentBranch: currentBranch,
+		textInput:     ti,
 	}
+	return m
 
-	p := tea.NewProgram(m, tea.WithAltScreen())
+}
+
+func main() {
+	m := initialModel()
+
+	p := tea.NewProgram(m)
 	if _, err := p.Run(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error running program: %v\n", err)
 		os.Exit(1)
