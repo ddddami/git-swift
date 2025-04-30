@@ -13,13 +13,13 @@ vet: fmt
 
 build: vet
 	@mkdir -p $(BUILD_DIR)
-	@go build -o $(BUILD_DIR)/$(BINARY_NAME) ./cmd
+	@go build -o $(BUILD_DIR)/$(BINARY_NAME) ./cmd/gitch
 
 clean:
 	@rm -rf $(BUILD_DIR)
 	@echo "Cleaned."
 
 run:
-	@go run ./cmd
+	@go run ./cmd/gitch
 
 rebuild: clean build

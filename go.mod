@@ -1,4 +1,4 @@
-module github.com/ddddami/git-swift
+module github.com/ddddami/swift-git
 
 go 1.23.4
 
