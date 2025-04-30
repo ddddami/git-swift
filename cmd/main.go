@@ -75,18 +75,18 @@ func (m *model) filter() {
 	m.filteredBranches = filtered
 }
 
-func directSwitch(branches []string, branchName string, currentBranch string) {
+func directSwitch(branches []string, branchName string, currentBranch string) bool {
 	cmd := exec.Command("git", "switch", branchName)
 	output, err := cmd.CombinedOutput()
 
 	if strings.Contains(strings.ToLower(string(output)), "already on") {
 		fmt.Printf("Already on branch '%s'\n", branchName)
-		os.Exit(0)
+		return true
 	}
 
 	if err == nil {
 		fmt.Printf("Switched to branch '%s'\n", branchName)
-		os.Exit(0)
+		return true
 	}
 
 	matches := []string{}
@@ -100,7 +100,7 @@ func directSwitch(branches []string, branchName string, currentBranch string) {
 	if len(matches) == 1 {
 		if matches[0] == currentBranch {
 			fmt.Printf("Already on branch '%s'\n", matches[0])
-			os.Exit(0)
+			return true
 		}
 		cmd := exec.Command("git", "switch", matches[0])
 		output, err := cmd.CombinedOutput()
@@ -110,8 +110,10 @@ func directSwitch(branches []string, branchName string, currentBranch string) {
 		}
 
 		fmt.Printf("  ▶ Fuzzy match found; Switched to branch '%s'\n", matches[0])
-		os.Exit(0)
+		return true
 	}
+
+	return false
 }
 
 func (m model) Init() tea.Cmd {
@@ -236,16 +238,16 @@ func getBranches() ([]string, string, error) {
 	return branches, currentBranch, nil
 }
 
-func initialModel(branches []string, currentBranch string, err error) model {
+func initialModel(branches []string, currentBranch string, initialQuery string) model {
 	ti := textinput.New()
 	ti.Placeholder = "Search"
 	ti.Focus()
 	ti.CharLimit = 156
 	ti.Width = 20
+	ti.PromptStyle = lipgloss.NewStyle()
 
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-		os.Exit(1)
+	if initialQuery != "" {
+		ti.SetValue(initialQuery)
 	}
 
 	m := model{
@@ -253,6 +255,9 @@ func initialModel(branches []string, currentBranch string, err error) model {
 		filteredBranches: branches,
 		currentBranch:    currentBranch,
 		textInput:        ti,
+	}
+	if initialQuery != "" {
+		m.filter()
 	}
 	return m
 }
@@ -264,11 +269,19 @@ func main() {
 		os.Exit(1)
 
 	}
+
+	var initialQuery string
+
 	if len(os.Args) > 1 {
-		directSwitch(branches, os.Args[1], currentBranch)
+
+		if directSwitch(branches, os.Args[1], currentBranch) {
+			os.Exit(0)
+		}
+
+		initialQuery = os.Args[1]
 	}
 
-	m := initialModel(branches, currentBranch, err)
+	m := initialModel(branches, currentBranch, initialQuery)
 
 	p := tea.NewProgram(m)
 	if _, err := p.Run(); err != nil {
