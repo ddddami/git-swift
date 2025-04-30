@@ -75,15 +75,43 @@ func (m *model) filter() {
 	m.filteredBranches = filtered
 }
 
-func directSwitch(branchName string) {
+func directSwitch(branches []string, branchName string, currentBranch string) {
 	cmd := exec.Command("git", "switch", branchName)
 	output, err := cmd.CombinedOutput()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error switching branch: %s\n", string(output))
-		os.Exit(1)
+
+	if strings.Contains(strings.ToLower(string(output)), "already on") {
+		fmt.Printf("Already on branch '%s'\n", branchName)
+		os.Exit(0)
 	}
-	fmt.Printf("Switched to branch '%s'\n", branchName)
-	os.Exit(0)
+
+	if err == nil {
+		fmt.Printf("Switched to branch '%s'\n", branchName)
+		os.Exit(0)
+	}
+
+	matches := []string{}
+
+	for _, branch := range branches {
+		if fuzzyMatch(branch, branchName) {
+			matches = append(matches, branch)
+		}
+	}
+
+	if len(matches) == 1 {
+		if matches[0] == currentBranch {
+			fmt.Printf("Already on branch '%s'\n", matches[0])
+			os.Exit(0)
+		}
+		cmd := exec.Command("git", "switch", matches[0])
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error switching branch: %s\n", string(output))
+			os.Exit(1)
+		}
+
+		fmt.Printf("  ▶ Fuzzy match found; Switched to branch '%s'\n", matches[0])
+		os.Exit(0)
+	}
 }
 
 func (m model) Init() tea.Cmd {
@@ -208,14 +236,13 @@ func getBranches() ([]string, string, error) {
 	return branches, currentBranch, nil
 }
 
-func initialModel() model {
+func initialModel(branches []string, currentBranch string, err error) model {
 	ti := textinput.New()
 	ti.Placeholder = "Search"
 	ti.Focus()
 	ti.CharLimit = 156
 	ti.Width = 20
 
-	branches, currentBranch, err := getBranches()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
@@ -231,11 +258,17 @@ func initialModel() model {
 }
 
 func main() {
+	branches, currentBranch, err := getBranches()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error getting branches: %v\n", err)
+		os.Exit(1)
+
+	}
 	if len(os.Args) > 1 {
-		directSwitch(os.Args[1])
+		directSwitch(branches, os.Args[1], currentBranch)
 	}
 
-	m := initialModel()
+	m := initialModel(branches, currentBranch, err)
 
 	p := tea.NewProgram(m)
 	if _, err := p.Run(); err != nil {
