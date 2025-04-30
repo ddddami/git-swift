@@ -147,6 +147,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			selectedBranch := m.filteredBranches[m.cursor]
 			if selectedBranch == m.currentBranch {
+				fmt.Printf("Already on branch '%s'\n", selectedBranch)
 				return m, tea.Quit
 			}
 
