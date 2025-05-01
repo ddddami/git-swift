@@ -16,7 +16,7 @@ var (
 func main() {
 	branches, currentBranch, err := git.GetBranches()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error getting branches: %v\n", err)
+		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
 	}
 
