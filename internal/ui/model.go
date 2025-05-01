@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"golang.org/x/term"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/textinput"
@@ -25,6 +26,7 @@ func NewModel(branches []string, currentBranch string, initialQuery string) Mode
 	ti := textinput.New()
 	ti.Placeholder = "Search"
 	ti.Focus()
+	ti.Prompt = " "
 	ti.CharLimit = 156
 	ti.Width = 20
 	ti.PromptStyle = lipgloss.NewStyle()
@@ -127,15 +129,22 @@ func (m Model) View() string {
 
 	s := strings.Builder{}
 
-	s.WriteString(PromptStyle.Render("$ swift git"))
-	s.WriteString("\n")
-	s.WriteString(SearchStyle.Render(m.textInput.View()))
-	s.WriteString("\n")
-
+	// s.WriteString(PromptStyle.Render(" $ swift git"))
+	// s.WriteString("\n")
+	inputView := SearchStyle.Render(m.textInput.View())
+	helpText := ""
 	if len(m.filteredBranches) > 0 {
-		s.WriteString(HelpTextStyle.Render("↑↓ quick select"))
-		s.WriteString("\n\n")
+		helpText = HelpTextStyle.Render("↑↓ quick select ")
 	}
+
+	termWidth, _, _ := term.GetSize(0)
+	if termWidth == 0 {
+		termWidth = 80
+	}
+
+	row := HorizontalLayout(inputView, helpText, termWidth)
+	s.WriteString(row)
+	s.WriteString("\n")
 
 	for i, branch := range m.filteredBranches {
 		var branchText string
@@ -153,7 +162,7 @@ func (m Model) View() string {
 		} else {
 			num = NumberStyle.Render(num)
 		}
-		s.WriteString(fmt.Sprintf("%s%s", num, branchText))
+		s.WriteString(fmt.Sprintf(" %s%s", num, branchText))
 		s.WriteString("\n")
 	}
 
