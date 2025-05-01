@@ -146,6 +146,11 @@ func (m Model) View() string {
 	s.WriteString(row)
 	s.WriteString("\n")
 
+	if len(m.filteredBranches) == 0 {
+		s.WriteString(" No matching branches\n")
+		return s.String()
+	}
+
 	for i, branch := range m.filteredBranches {
 		var branchText string
 		num := fmt.Sprintf("%d ", i)
