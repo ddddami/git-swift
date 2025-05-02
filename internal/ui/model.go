@@ -185,15 +185,15 @@ func (m Model) View() string {
 		s.WriteString(" No matching branches\n")
 	} else {
 		for i, branch := range m.filteredBranches {
-			var branchText string
+			branchText := branch
 			num := fmt.Sprintf("%d ", i)
 			if branch == m.currentBranch {
-				branchText = CurrentBranchStyle.Render(branch)
+				branchText = CurrentBranchStyle.Render(fmt.Sprintf("%s *", branch))
 			} else {
-				branchText = BranchStyle.Render(branch)
+				branchText = BranchStyle.Render(branchText)
 			}
 			if i == m.cursor {
-				branchText = SelectedStyle.Render(branch)
+				branchText = SelectedStyle.Render(branchText)
 				num = SelectedStyle.Render(num)
 			} else {
 				num = NumberStyle.Render(num)
