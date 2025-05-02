@@ -50,7 +50,7 @@ func IsAlreadyOnBranch(output []byte, branchName string) bool {
 
 func TryDirectSwitch(branches []string, branchName string, currentBranch string) bool {
 	if branchName == currentBranch {
-		fmt.Printf("Already on branch '%s'\n", branchName)
+		fmt.Printf("\n  ▶ Already on branch '%s'\n", branchName)
 		return true
 	}
 
@@ -58,12 +58,12 @@ func TryDirectSwitch(branches []string, branchName string, currentBranch string)
 	output, err := cmd.CombinedOutput()
 
 	if IsAlreadyOnBranch(output, branchName) {
-		fmt.Printf("Already on branch '%s'\n", branchName)
+		fmt.Printf("\n  ▶ Already on branch '%s'\n", branchName)
 		return true
 	}
 
 	if err == nil {
-		fmt.Printf("Switched to branch '%s'\n", branchName)
+		fmt.Printf("\n  ▶ Switched to branch '%s'\n", branchName)
 		return true
 	}
 
@@ -76,18 +76,18 @@ func TryDirectSwitch(branches []string, branchName string, currentBranch string)
 
 	if len(matches) == 1 {
 		if matches[0] == currentBranch {
-			fmt.Printf("Already on branch '%s'\n", matches[0])
+			fmt.Printf("\n  ▶ Already on branch '%s'\n", matches[0])
 			return true
 		}
 
 		cmd := exec.Command("git", "switch", matches[0])
 		output, err := cmd.CombinedOutput()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error switching branch: %s\n", string(output))
+			fmt.Fprintf(os.Stderr, "\n  Error switching branch: %s\n", string(output))
 			return false
 		}
 
-		fmt.Printf("  ▶ Fuzzy match found; Switched to branch '%s'\n", matches[0])
+		fmt.Printf("\n  ▶ Fuzzy match found; Switched to branch '%s'\n", matches[0])
 		return true
 	}
 

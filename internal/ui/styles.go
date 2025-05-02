@@ -28,7 +28,7 @@ func HorizontalLayout(leftContent, rightContent string, totalWidth int) string {
 
 	spacing := totalWidth - lipgloss.Width(leftContent) - lipgloss.Width(rightContent)
 	if spacing < 1 {
-		spacing = 1 // Ensure at least one space
+		spacing = 1
 	}
 
 	return lipgloss.NewStyle().Width(totalWidth).Render(

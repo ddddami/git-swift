@@ -2,8 +2,9 @@ package ui
 
 import (
 	"fmt"
-	"golang.org/x/term"
 	"strings"
+
+	"golang.org/x/term"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
@@ -13,6 +14,19 @@ import (
 	"github.com/ddddami/swift-git/internal/utils"
 )
 
+type clearScreenMsg struct{}
+
+func ClearLines(count int) {
+	if count <= 0 {
+		return
+	}
+
+	// Move cursor up 'count' lines
+	fmt.Printf("\033[%dA", count-1)
+	// Clear from cursor to the end of screen
+	fmt.Print("\033[J")
+}
+
 type Model struct {
 	branches         []string
 	filteredBranches []string
@@ -20,6 +34,9 @@ type Model struct {
 	textInput        textinput.Model
 	cursor           int
 	err              error
+	lineCount        int
+	switchedBranch   string
+	alreadyOnBranch  bool
 }
 
 func NewModel(branches []string, currentBranch string, initialQuery string) Model {
@@ -30,7 +47,6 @@ func NewModel(branches []string, currentBranch string, initialQuery string) Mode
 	ti.CharLimit = 156
 	ti.Width = 20
 	ti.PromptStyle = lipgloss.NewStyle()
-
 	if initialQuery != "" {
 		ti.SetValue(initialQuery)
 	}
@@ -40,6 +56,9 @@ func NewModel(branches []string, currentBranch string, initialQuery string) Mode
 		filteredBranches: branches,
 		currentBranch:    currentBranch,
 		textInput:        ti,
+		lineCount:        0,
+		switchedBranch:   "",
+		alreadyOnBranch:  false,
 	}
 
 	if initialQuery != "" {
@@ -71,10 +90,18 @@ func (m Model) Init() tea.Cmd {
 	return textinput.Blink
 }
 
+type updateLineCountMsg struct {
+	count int
+}
+
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
+	case updateLineCountMsg:
+		m.lineCount = msg.count
+		return m, nil
+
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyCtrlC, tea.KeyEsc:
@@ -96,8 +123,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			selectedBranch := m.filteredBranches[m.cursor]
+
 			if selectedBranch == m.currentBranch {
-				fmt.Printf("Already on branch '%s'\n", selectedBranch)
+				m.alreadyOnBranch = true
+				// Don't print here, it is done after cleanup
 				return m, tea.Quit
 			}
 
@@ -107,19 +136,29 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, nil
 			}
 
-			fmt.Printf("  ▶ Switched to branch '%s'\n", selectedBranch)
+			m.switchedBranch = selectedBranch
 			return m, tea.Quit
 		}
 
 		m.textInput, cmd = m.textInput.Update(msg)
 		m.filter()
-
 		if m.cursor >= len(m.filteredBranches) && len(m.filteredBranches) > 0 {
 			m.cursor = len(m.filteredBranches) - 1
 		}
+
+	case clearScreenMsg:
+		// This is handled in Run() after the program exits
 	}
 
-	return m, cmd
+	viewOutput := m.View()
+	lineCount := strings.Count(viewOutput, "\n") + 1
+
+	return m, tea.Batch(
+		cmd,
+		func() tea.Msg {
+			return updateLineCountMsg{count: lineCount}
+		},
+	)
 }
 
 func (m Model) View() string {
@@ -129,46 +168,39 @@ func (m Model) View() string {
 
 	s := strings.Builder{}
 
-	// s.WriteString(PromptStyle.Render(" $ swift git"))
-	// s.WriteString("\n")
 	inputView := SearchStyle.Render(m.textInput.View())
 	helpText := ""
 	if len(m.filteredBranches) > 0 {
 		helpText = HelpTextStyle.Render("↑↓ quick select ")
 	}
-
 	termWidth, _, _ := term.GetSize(0)
 	if termWidth == 0 {
 		termWidth = 80
 	}
-
 	row := HorizontalLayout(inputView, helpText, termWidth)
 	s.WriteString(row)
 	s.WriteString("\n")
 
 	if len(m.filteredBranches) == 0 {
 		s.WriteString(" No matching branches\n")
-		return s.String()
-	}
-
-	for i, branch := range m.filteredBranches {
-		var branchText string
-		num := fmt.Sprintf("%d ", i)
-
-		if branch == m.currentBranch {
-			branchText = CurrentBranchStyle.Render(branch)
-		} else {
-			branchText = BranchStyle.Render(branch)
+	} else {
+		for i, branch := range m.filteredBranches {
+			var branchText string
+			num := fmt.Sprintf("%d ", i)
+			if branch == m.currentBranch {
+				branchText = CurrentBranchStyle.Render(branch)
+			} else {
+				branchText = BranchStyle.Render(branch)
+			}
+			if i == m.cursor {
+				branchText = SelectedStyle.Render(branch)
+				num = SelectedStyle.Render(num)
+			} else {
+				num = NumberStyle.Render(num)
+			}
+			s.WriteString(fmt.Sprintf(" %s%s", num, branchText))
+			s.WriteString("\n")
 		}
-
-		if i == m.cursor {
-			branchText = SelectedStyle.Render(branch)
-			num = SelectedStyle.Render(num)
-		} else {
-			num = NumberStyle.Render(num)
-		}
-		s.WriteString(fmt.Sprintf(" %s%s", num, branchText))
-		s.WriteString("\n")
 	}
 
 	return s.String()
@@ -177,6 +209,28 @@ func (m Model) View() string {
 func Run(branches []string, currentBranch string, initialQuery string) error {
 	m := NewModel(branches, currentBranch, initialQuery)
 	p := tea.NewProgram(m)
-	_, err := p.Run()
-	return err
+
+	var switchedBranch string
+	var alreadyOnBranch bool
+
+	finalModel, err := p.Run()
+	if err != nil {
+		return err
+	}
+
+	if fm, ok := finalModel.(Model); ok {
+		if fm.lineCount > 0 {
+			ClearLines(fm.lineCount)
+		}
+		switchedBranch = fm.switchedBranch
+		alreadyOnBranch = fm.alreadyOnBranch
+	}
+
+	if switchedBranch != "" {
+		fmt.Printf("\n  ▶ Switched to branch '%s'\n", switchedBranch)
+	} else if alreadyOnBranch {
+		fmt.Printf("\n  ▶ Already on branch '%s'\n", currentBranch)
+	}
+
+	return nil
 }

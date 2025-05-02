@@ -21,12 +21,12 @@ func main() {
 	}
 
 	var initialQuery string
+
 	if len(os.Args) > 1 {
 		branchName := os.Args[1]
 		if git.TryDirectSwitch(branches, branchName, currentBranch) {
 			os.Exit(0)
 		}
-
 		initialQuery = branchName
 	}
 
