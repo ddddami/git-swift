@@ -94,6 +94,27 @@ type updateLineCountMsg struct {
 	count int
 }
 
+func (m Model) switchToBranch(branchIndex int) (tea.Model, tea.Cmd) {
+	if branchIndex < 0 || branchIndex >= len(m.filteredBranches) {
+		return m, nil
+	}
+
+	selectedBranch := m.filteredBranches[branchIndex]
+	if selectedBranch == m.currentBranch {
+		m.alreadyOnBranch = true
+		return m, tea.Quit
+	}
+
+	err := git.SwitchBranch(selectedBranch)
+	if err != nil {
+		m.err = err
+		return m, nil
+	}
+
+	m.switchedBranch = selectedBranch
+	return m, tea.Quit
+}
+
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
@@ -103,6 +124,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case tea.KeyMsg:
+
+		if msg.Alt && msg.Type == tea.KeyRunes && len(msg.Runes) == 1 {
+			r := msg.Runes[0]
+			if r >= '0' && r <= '9' {
+				index := int(r - '0')
+
+				return m.switchToBranch(index)
+			}
+		}
 		switch msg.Type {
 		case tea.KeyCtrlC, tea.KeyEsc:
 			return m, tea.Quit
@@ -122,22 +152,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, nil
 			}
 
-			selectedBranch := m.filteredBranches[m.cursor]
-
-			if selectedBranch == m.currentBranch {
-				m.alreadyOnBranch = true
-				// Don't print here, it is done after cleanup
-				return m, tea.Quit
-			}
-
-			err := git.SwitchBranch(selectedBranch)
-			if err != nil {
-				m.err = err
-				return m, nil
-			}
-
-			m.switchedBranch = selectedBranch
-			return m, tea.Quit
+			return m.switchToBranch(m.cursor)
 		}
 
 		m.textInput, cmd = m.textInput.Update(msg)
@@ -171,7 +186,7 @@ func (m Model) View() string {
 	inputView := SearchStyle.Render(m.textInput.View())
 	helpText := ""
 	if len(m.filteredBranches) > 0 {
-		helpText = HelpTextStyle.Render("↑↓ quick select ")
+		helpText = HelpTextStyle.Render("↑↓ quick select • Alt+n quick switch ")
 	}
 	termWidth, _, _ := term.GetSize(0)
 	if termWidth == 0 {
