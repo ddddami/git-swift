@@ -1,5 +1,5 @@
 {
-	"name": "gitch",
+	"name": "gitch-swift",
 	"version": "0.1.1",
 	"description": "A fast git branch switcher with fuzzy search",
 	"main": "index.js",
