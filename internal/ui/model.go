@@ -202,17 +202,28 @@ func (m Model) View() string {
 		for i, branch := range m.filteredBranches {
 			branchText := branch
 			num := fmt.Sprintf("%d ", i)
-			if branch == m.currentBranch {
-				branchText = CurrentBranchStyle.Render(fmt.Sprintf("%s *", branch))
-			} else {
-				branchText = BranchStyle.Render(branchText)
+			if i > 9 {
+				num = "  "
 			}
+
 			if i == m.cursor {
-				branchText = SelectedStyle.Render(branchText)
 				num = SelectedStyle.Render(num)
+
+				if branch == m.currentBranch {
+					branchText = SelectedStyle.Render(fmt.Sprintf("%s *", branch))
+				} else {
+					branchText = SelectedStyle.Render(branchText)
+				}
 			} else {
 				num = NumberStyle.Render(num)
+
+				if branch == m.currentBranch {
+					branchText = CurrentBranchStyle.Render(fmt.Sprintf("%s *", branch))
+				} else {
+					branchText = BranchStyle.Render(branchText)
+				}
 			}
+
 			s.WriteString(fmt.Sprintf(" %s%s", num, branchText))
 			s.WriteString("\n")
 		}

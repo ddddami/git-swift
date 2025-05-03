@@ -12,7 +12,6 @@ var (
 	mutedColor   = lipgloss.Color("#6C6C6C")
 	lightColor   = lipgloss.Color("#D0D0D0")
 
-	PromptStyle        = lipgloss.NewStyle().Foreground(primaryColor).MarginLeft(leftMargin)
 	SearchStyle        = lipgloss.NewStyle().Foreground(lightColor).MarginLeft(leftMargin).PaddingBottom(1)
 	NumberStyle        = lipgloss.NewStyle().Foreground(mutedColor)
 	BranchStyle        = lipgloss.NewStyle().Foreground(lightColor)

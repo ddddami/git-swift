@@ -15,7 +15,7 @@
 		"type": "git",
 		"url": "git+https://github.com/ddddami/gitch.git"
 	},
-	"keywords": ["git", "branch", "switch", "cli", "terminal"],
+	"keywords": ["git", "branch", "switch", "go", "cli", "terminal"],
 	"author": "Damilola O.",
 	"license": "MIT",
 	"bugs": {
