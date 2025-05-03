@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/ddddami/swift-git/internal/utils"
+	"github.com/ddddami/git-swift/internal/utils"
 )
 
 func GetBranches() ([]string, string, error) {

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ddddami/swift-git/internal/git"
-	"github.com/ddddami/swift-git/internal/ui"
+	"github.com/ddddami/git-swift/internal/git"
+	"github.com/ddddami/git-swift/internal/ui"
 )
 
 var (

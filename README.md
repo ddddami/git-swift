@@ -1,11 +1,11 @@
-# gitch
+# git swift
 
 > Lightning-fast branch switching with fuzzy search
 
 A minimal CLI tool that lets you quickly find and switch between Git branches using a clean, interactive interface.
 
 <p align="center">
-  <img src="https://github.com/ddddami/gitch/raw/master/images/demo.gif" alt="gitch switch demo" width="800px" />
+  <img src="https://github.com/ddddami/git-swift/raw/master/images/demo.gif" alt="git swift demo" width="800px" />
 </p>
 
 ## Features
@@ -20,20 +20,20 @@ A minimal CLI tool that lets you quickly find and switch between Git branches us
 ### Using npm
 
 ```bash
-npm install -g gitch-swift
+npm install -g git-swift
 ```
 
 <!-- ### Using Homebrew -->
 <!---->
 <!-- ```bash -->
-<!-- brew tap ddddami/gitch -->
-<!-- brew install gitch -->
+<!-- brew tap ddddami/git-swift -->
+<!-- brew install git-swift -->
 <!-- ``` -->
 
 ### From source
 
 ```bash
-go install github.com/ddddami/gitch@latest
+go install github.com/ddddami/git-swift@latest
 ```
 
 ## Usage
@@ -63,7 +63,7 @@ git swift branch-name
 
 This will switch directly to the branch if an exact match is found.
 
-## Why gitch?
+## Why git swift?
 
 - **Minimal UI** - Just the information you need, nothing more
 - **Lightweight** - Fast startup time, small memory footprint

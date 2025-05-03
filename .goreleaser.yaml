@@ -4,10 +4,12 @@ before:
   hooks:
     - go mod tidy
 
+project_name: git-swift
+
 builds:
   - env:
       - CGO_ENABLED=0
-    main: ./cmd/gitch
+    main: ./cmd/git-swift
     goos:
       - linux
       - windows

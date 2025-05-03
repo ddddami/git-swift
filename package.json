@@ -1,6 +1,6 @@
 {
-	"name": "gitch-swift",
-	"version": "0.1.1",
+	"name": "git-swift",
+	"version": "0.1.2",
 	"description": "A fast git branch switcher with fuzzy search",
 	"main": "index.js",
 	"scripts": {
@@ -9,19 +9,19 @@
 	},
 	"go-bin": {
 		"name": "git-swift",
-		"url": "https://github.com/ddddami/gitch/releases/download/v{{version}}/gitch_{{version}}_{{platform}}_{{arch}}{{archive_ext}}"
+		"url": "https://github.com/ddddami/git-swift/releases/download/v{{version}}/gitch_{{platform}}_{{arch}}{{archive_ext}}"
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/ddddami/gitch.git"
+		"url": "git+https://github.com/ddddami/git-swift.git"
 	},
 	"keywords": ["git", "branch", "switch", "go", "cli", "terminal"],
 	"author": "Damilola O.",
 	"license": "MIT",
 	"bugs": {
-		"url": "https://github.com/ddddami/gitch/issues"
+		"url": "https://github.com/ddddami/git-swift/issues"
 	},
-	"homepage": "https://github.com/ddddami/gitch#readme",
+	"homepage": "https://github.com/ddddami/git-swift#readme",
 	"engines": {
 		"node": ">=12"
 	},

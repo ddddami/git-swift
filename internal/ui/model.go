@@ -10,8 +10,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
-	"github.com/ddddami/swift-git/internal/git"
-	"github.com/ddddami/swift-git/internal/utils"
+	"github.com/ddddami/git-swift/internal/git"
+	"github.com/ddddami/git-swift/internal/utils"
 )
 
 type clearScreenMsg struct{}
