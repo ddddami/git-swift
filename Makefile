@@ -1,4 +1,4 @@
-BINARY_NAME=gitch
+BINARY_NAME=git-swift
 BUILD_DIR=bin
 
 .DEFAULT_GOAL := build
