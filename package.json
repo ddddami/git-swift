@@ -1,0 +1,31 @@
+{
+	"name": "gitch",
+	"version": "0.1.1",
+	"description": "A fast git branch switcher with fuzzy search",
+	"main": "index.js",
+	"scripts": {
+		"postinstall": "npm-go-bin install",
+		"preuninstall": "npm-go-bin uninstall"
+	},
+	"go-bin": {
+		"name": "gitch",
+		"url": "https://github.com/ddddami/gitch/releases/download/v{{version}}/gitch_{{version}}_{{platform}}_{{arch}}{{archive_ext}}"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/ddddami/gitch.git"
+	},
+	"keywords": ["git", "branch", "switch", "cli", "terminal"],
+	"author": "Damilola O.",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/ddddami/gitch/issues"
+	},
+	"homepage": "https://github.com/ddddami/gitch#readme",
+	"engines": {
+		"node": ">=12"
+	},
+	"dependencies": {
+		"npm-go-bin": "^0.0.1"
+	}
+}
