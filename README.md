@@ -4,7 +4,9 @@
 
 A minimal CLI tool that lets you quickly find and switch between Git branches using a clean, interactive interface.
 
-![gitch demo](https://github.com/ddddami/gitch/raw/main/demo.gif)
+<p align="center">
+  <img src="https://github.com/ddddami/gitch/raw/master/images/demo.gif" alt="gitch switch demo" width="800px" />
+</p>
 
 ## Features
 
@@ -18,42 +20,45 @@ A minimal CLI tool that lets you quickly find and switch between Git branches us
 ### Using npm
 
 ```bash
-npm install -g gitch
+npm install -g gitch-swift
 ```
 
-### Using Homebrew
-
-```bash
-brew tap ddddami/gitch
-brew install gitch
-```
+<!-- ### Using Homebrew -->
+<!---->
+<!-- ```bash -->
+<!-- brew tap ddddami/gitch -->
+<!-- brew install gitch -->
+<!-- ``` -->
 
 ### From source
 
 ```bash
-go install github.com/ddddami/swift-git@latest
+go install github.com/ddddami/gitch@latest
 ```
 
 ## Usage
 
 ### Interactive mode
+
 Simply run:
 
 ```bash
-gitch
+git swift
 ```
 
 This opens an interactive UI where you can:
+
 - Type to filter branches
 - Use ↑/↓ arrows to navigate
 - Press Enter to switch to the selected branch
 - Press Esc to quit
 
 ### Direct mode
+
 If you know part of the branch name:
 
 ```bash
-gitch branch-name
+git swift branch-name
 ```
 
 This will switch directly to the branch if an exact match is found.
