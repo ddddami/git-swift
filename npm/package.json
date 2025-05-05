@@ -1,21 +1,33 @@
 {
 	"name": "git-swift",
-	"version": "0.1.3",
+	"version": "0.1.4",
 	"description": "A fast git branch switcher with fuzzy search",
 	"main": "index.js",
 	"scripts": {
-		"postinstall": "npm-go-bin install",
-		"preuninstall": "npm-go-bin uninstall"
+		"postinstall": "golang-npm install",
+		"preuninstall": "golang-npm uninstall"
 	},
-	"go-bin": {
+	"goBinary": {
 		"name": "git-swift",
-		"url": "https://github.com/ddddami/git-swift/releases/download/v{{version}}/git-swift_{{platform}}_{{arch}}{{archive_ext}}"
+		"path": "./bin",
+		"url": "https://github.com/ddddami/git-swift/releases/download/v{{version}}/git-swift_{{platform}}_{{arch}}.tar.gz"
+	},
+	"dependencies": {
+		"golang-npm": "^0.0.6"
 	},
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/ddddami/git-swift.git"
 	},
-	"keywords": ["git", "branch", "switch", "go", "cli", "terminal"],
+	"keywords": [
+		"git",
+		"swift",
+		"branch",
+		"switch",
+		"go",
+		"cli",
+		"terminal"
+	],
 	"author": "Damilola O.",
 	"license": "MIT",
 	"bugs": {
@@ -24,8 +36,5 @@
 	"homepage": "https://github.com/ddddami/git-swift#readme",
 	"engines": {
 		"node": ">=12"
-	},
-	"dependencies": {
-		"npm-go-bin": "^0.0.1"
 	}
 }
