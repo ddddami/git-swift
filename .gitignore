@@ -1,2 +1,5 @@
 bin/
 dist/
+node_modules/
+bundle-binaries/
+bin/

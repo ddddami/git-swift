@@ -1,0 +1,4 @@
+node_modules/
+bundled-binaries/
+bin/
+*.tgz

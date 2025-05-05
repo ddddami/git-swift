@@ -30,9 +30,6 @@ archives:
       {{- .Os }}_
       {{- if .Arch }}{{ .Arch }}{{ end }}
       {{- if .Arm }}v{{ .Arm }}{{ end }}
-    format_overrides:
-      - goos: windows
-        formats: [zip]
 
 changelog:
   use: github-native
