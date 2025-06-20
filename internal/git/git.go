@@ -93,3 +93,38 @@ func TryDirectSwitch(branches []string, branchName string, currentBranch string)
 
 	return false
 }
+
+func DeleteBranch(branchName string) error {
+	cmd := exec.Command("git", "branch", "--delete", branchName)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		outputStr := strings.TrimSpace(string(output))
+		if strings.Contains(outputStr, "not fully merged") ||
+			strings.Contains(outputStr, "not merged") {
+			return &UnmergedBranchError{
+				BranchName: branchName,
+				Message:    outputStr,
+			}
+		}
+		return fmt.Errorf("%s", outputStr)
+	}
+	return nil
+}
+
+func ForceDeleteBranch(branchName string) error {
+	cmd := exec.Command("git", "branch", "--delete", "--force", branchName)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("%s", strings.TrimSpace(string(output)))
+	}
+	return nil
+}
+
+type UnmergedBranchError struct {
+	BranchName string
+	Message    string
+}
+
+func (e *UnmergedBranchError) Error() string {
+	return e.Message
+}
