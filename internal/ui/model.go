@@ -219,11 +219,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.KeyMsg:
 
+		// Alt+0-9 quick switch (works on Linux/Windows, needs terminal config on macOS)
 		if msg.Alt && msg.Type == tea.KeyRunes && len(msg.Runes) == 1 {
 			r := msg.Runes[0]
 			if r >= '0' && r <= '9' {
 				index := int(r - '0')
-
 				return m.switchToBranch(index)
 			}
 		}
@@ -248,7 +248,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			return m.switchToBranch(m.cursor)
 
-		case tea.KeyDelete:
+		case tea.KeyDelete, tea.KeyCtrlX:
 
 			if len(m.filteredBranches) == 0 {
 				return m, nil
