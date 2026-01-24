@@ -54,7 +54,6 @@ func NewModel(branches []string, currentBranch string, initialQuery string) Mode
 	ti := textinput.New()
 	ti.Placeholder = "Search"
 	ti.Focus()
-	ti.Prompt = " "
 	ti.CharLimit = 156
 	ti.Width = 20
 	ti.PromptStyle = lipgloss.NewStyle()
@@ -327,6 +326,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case clearScreenMsg:
 		// This is handled in Run() after the program exits
+
+	default:
+		var cmd tea.Cmd
+		m.textInput, cmd = m.textInput.Update(msg)
+		return m, cmd
 	}
 
 	viewOutput := m.View()
