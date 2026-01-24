@@ -43,6 +43,10 @@ type Model struct {
 	deleteSelectedOpt  int
 	deletedBranch      string
 
+	// Pagination
+	windowHeight int
+	scrollOffset int
+
 	showError bool
 }
 
@@ -140,6 +144,36 @@ type errorQuitMsg struct {
 	error string
 }
 
+func (m *Model) updateViewport() {
+	headerHeight := 2
+	footerHeight := 1
+	availableHeight := m.windowHeight - headerHeight - footerHeight
+	if availableHeight < 1 {
+		availableHeight = 1
+	}
+
+	if m.cursor < m.scrollOffset {
+		m.scrollOffset = m.cursor
+	}
+	if m.cursor >= m.scrollOffset+availableHeight {
+		m.scrollOffset = m.cursor - availableHeight + 1
+	}
+
+	if m.scrollOffset < 0 {
+		m.scrollOffset = 0
+	}
+	if len(m.filteredBranches) > 0 {
+		if maxOffset := len(m.filteredBranches) - availableHeight; m.scrollOffset > maxOffset {
+			m.scrollOffset = maxOffset
+			if m.scrollOffset < 0 {
+				m.scrollOffset = 0
+			}
+		}
+	} else {
+		m.scrollOffset = 0
+	}
+}
+
 func (m Model) deleteBranch(branchIndex int) (tea.Model, tea.Cmd) {
 	if branchIndex < 0 || branchIndex >= len(m.filteredBranches) {
 		return m, nil
@@ -222,6 +256,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 	}
 	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		m.windowHeight = msg.Height
+		m.updateViewport()
+		return m, nil
+
 	case updateLineCountMsg:
 		m.lineCount = msg.count
 		return m, nil
@@ -279,6 +318,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.cursor = len(m.filteredBranches) - 1
 		}
 
+		m.updateViewport()
+
+		return m, cmd
 	case errorQuitMsg:
 		m.err = fmt.Errorf(msg.error)
 		return m, nil
@@ -322,10 +364,24 @@ func (m Model) View() string {
 	s.WriteString(row)
 	s.WriteString("\n")
 
+	headerHeight := 2
+	footerHeight := 1
+	availableHeight := m.windowHeight - headerHeight - footerHeight
+	if availableHeight < 1 {
+		availableHeight = 1
+	}
+
+	// Loop over only the visible slice
 	if len(m.filteredBranches) == 0 {
 		s.WriteString(" No matching branches\n")
 	} else {
-		for i, branch := range m.filteredBranches {
+		end := m.scrollOffset + availableHeight
+		if end > len(m.filteredBranches) {
+			end = len(m.filteredBranches)
+		}
+
+		for i := m.scrollOffset; i < end; i++ {
+			branch := m.filteredBranches[i]
 			branchText := branch
 			num := fmt.Sprintf("%d ", i)
 			if i > 9 {
