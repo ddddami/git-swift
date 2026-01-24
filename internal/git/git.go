@@ -23,7 +23,13 @@ func GetBranches() ([]string, string, error) {
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
 		isCurrent := strings.HasPrefix(line, "*")
-		name := strings.TrimSpace(strings.TrimPrefix(line, "*"))
+		isWorktree := strings.HasPrefix(line, "+")
+
+		// Remove the prefix (* for current, + for worktree)
+		name := line
+		if isCurrent || isWorktree {
+			name = strings.TrimSpace(line[1:])
+		}
 
 		if isCurrent {
 			currentBranch = name
