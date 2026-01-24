@@ -156,18 +156,17 @@ func (m Model) deleteBranch(branchIndex int) (tea.Model, tea.Cmd) {
 	err := git.DeleteBranch(selectedBranch)
 	if err != nil {
 		if unmergedErr, ok := err.(*git.UnmergedBranchError); ok {
-			// Show confirmation dialog
+			// Show confirmation dialog for unmerged branches
 			m.showDeleteConfirm = true
 			m.deleteTargetBranch = selectedBranch
 			m.deleteErrorMsg = unmergedErr.Message
 			m.deleteSelectedOpt = 1 // Default to Cancel
 			return m, nil
 		}
+		// Show dismissible error
 		m.err = err
-		return m, tea.Sequence(
-			func() tea.Msg { return errorQuitMsg{err.Error()} },
-			tea.Quit,
-		)
+		m.showError = true
+		return m, nil
 	}
 
 	m.deletedBranch = selectedBranch
