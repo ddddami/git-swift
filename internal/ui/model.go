@@ -148,12 +148,9 @@ func (m Model) deleteBranch(branchIndex int) (tea.Model, tea.Cmd) {
 	selectedBranch := m.filteredBranches[branchIndex]
 
 	if selectedBranch == m.currentBranch {
-		return m, tea.Sequence(
-			func() tea.Msg {
-				return errorQuitMsg{fmt.Sprintf("Cannot delete the current branch '%s'", selectedBranch)}
-			},
-			tea.Quit,
-		)
+		m.err = fmt.Errorf("Cannot delete the current branch '%s'", selectedBranch)
+		m.showError = true
+		return m, nil
 	}
 
 	err := git.DeleteBranch(selectedBranch)
