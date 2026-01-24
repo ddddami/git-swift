@@ -97,6 +97,19 @@ func (m Model) Init() tea.Cmd {
 	return textinput.Blink
 }
 
+// [Smelly code] macOptionNumberToIndex detects macOS Option+number key presses.
+// Trade-off: This is a workaround for unconfigured terminals on macOS & user UX.
+// When Option is pressed with numbers, macOS sends special Unicode chars instead of Alt modifier.
+func macOptionNumberToIndex(r rune) (int, bool) {
+	// Option+0='º', Option+1='¡', Option+2='™', ...
+	macOptionDigits := map[rune]int{
+		'º': 0, '¡': 1, '™': 2, '£': 3, '¢': 4,
+		'∞': 5, '§': 6, '¶': 7, '•': 8, 'ª': 9,
+	}
+	index, ok := macOptionDigits[r]
+	return index, ok
+}
+
 type updateLineCountMsg struct {
 	count int
 }
@@ -219,11 +232,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.KeyMsg:
 
-		// Alt+0-9 quick switch (works on Linux/Windows, needs terminal config on macOS)
+		// Alt+0-9 quick switch (works on Linux/Windows)
 		if msg.Alt && msg.Type == tea.KeyRunes && len(msg.Runes) == 1 {
 			r := msg.Runes[0]
 			if r >= '0' && r <= '9' {
 				index := int(r - '0')
+				return m.switchToBranch(index)
+			}
+		}
+
+		if msg.Type == tea.KeyRunes && len(msg.Runes) == 1 {
+			if index, ok := macOptionNumberToIndex(msg.Runes[0]); ok {
 				return m.switchToBranch(index)
 			}
 		}
