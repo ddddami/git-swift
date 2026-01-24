@@ -42,6 +42,8 @@ type Model struct {
 	deleteErrorMsg     string
 	deleteSelectedOpt  int
 	deletedBranch      string
+
+	showError bool
 }
 
 func NewModel(branches []string, currentBranch string, initialQuery string) Model {
@@ -113,6 +115,7 @@ func (m Model) switchToBranch(branchIndex int) (tea.Model, tea.Cmd) {
 	err := git.SwitchBranch(selectedBranch)
 	if err != nil {
 		m.err = err
+		m.showError = true
 		return m, nil
 	}
 
@@ -163,6 +166,21 @@ func (m Model) deleteBranch(branchIndex int) (tea.Model, tea.Cmd) {
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
+
+	if m.showError {
+		switch msg := msg.(type) {
+		case tea.KeyMsg:
+			switch msg.Type {
+			case tea.KeyEsc, tea.KeyEnter:
+				m.showError = false
+				m.err = nil
+				return m, nil
+			case tea.KeyCtrlC:
+				return m, tea.Quit
+			}
+		}
+		return m, nil
+	}
 
 	if m.showDeleteConfirm {
 		switch msg := msg.(type) {
@@ -266,8 +284,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
-	if m.err != nil {
-		return fmt.Sprintf("Error: %v\n", m.err)
+	if m.showError {
+		return m.renderError()
 	}
 
 	if m.showDeleteConfirm {
@@ -346,6 +364,17 @@ func (m Model) renderDeleteConfirm() string {
 
 	s.WriteString(fmt.Sprintf("Do you want to force delete this branch?\n\n%s  %s\n\n", forceText, cancelText))
 	s.WriteString("← → navigate • Enter select • Esc cancel")
+
+	return s.String()
+}
+
+func (m Model) renderError() string {
+	var s strings.Builder
+
+	s.WriteString("\n")
+	s.WriteString("\033[31m✗ Error\033[0m\n\n")
+	s.WriteString(fmt.Sprintf("%s\n\n", m.err.Error()))
+	s.WriteString("\033[2mPress Esc or Enter to continue\033[0m\n")
 
 	return s.String()
 }

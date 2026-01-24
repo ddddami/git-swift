@@ -39,7 +39,7 @@ func SwitchBranch(branchName string) error {
 	cmd := exec.Command("git", "switch", branchName)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("error switching branch: %s", string(output))
+		return fmt.Errorf("%s", string(output))
 	}
 	return nil
 }
