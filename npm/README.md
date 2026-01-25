@@ -11,9 +11,9 @@ A minimal CLI tool that lets you quickly find and switch between Git branches us
 ## Features
 
 - ⚡ **Fast branch switching** - Find branches faster than you can type their full name
-- ⌨️ **Keyboard-driven** - Navigate without reaching for the mouse
-- 🔢 **Numbered selections** - Easy visual reference
-- 🔖 **Uses native `git switch`** under the hood, supports all its parameters
+- ⌨️ **Keyboard-driven** - Navigate and delete branches without reaching for the mouse
+- 🔢 **Smart shortcuts** - Quick-switch to recent branches (`Alt+1..9`)
+- 🛠️ **Git-compatible** - Supports standard `git switch` flags (create, detach, etc.)
 
 ## Installation
 
@@ -48,10 +48,14 @@ git swift
 
 This opens an interactive UI where you can:
 
-- Type to filter branches
-- Use ↑/↓ arrows to navigate
-- Press Enter to switch to the selected branch
-- Press Esc to quit
+| Key | Action |
+| --- | --- |
+| `Type` | Filter branches |
+| `↑` / `↓` | Navigate list |
+| `Enter` | Switch to branch |
+| `Alt` / `Option` + `1-9` | Quick switch to branch # |
+| `Delete` / `Ctrl`+`X` | Delete selected branch |
+| `Esc` | Quit |
 
 ### Direct mode
 
@@ -62,6 +66,15 @@ git swift branch-name
 ```
 
 This will switch directly to the branch if an exact match is found.
+
+### Pass-through mode
+
+Pass standard `git switch` flags directly:
+
+```bash
+git swift -c new-feature    # Create & switch
+git swift --detach commit   # Detach HEAD
+```
 
 ## Why git swift?
 
